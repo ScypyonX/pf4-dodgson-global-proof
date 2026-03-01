@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the accompanying paper."
+title: "Global total positivity of order four for the de Bruijn-Newman kernel with a rigorous interval certificate"
+type: software
+authors:
+  - family-names: "Michałowski"
+    given-names: "Wojciech"
+    email: "michalowski.wojciech1@gmail.com"
+repository-code: "https://github.com/ScypyonX/pf4-dodgson-global-proof"
+license: MIT
+keywords:
+  - de Bruijn-Newman constant
+  - total positivity
+  - Dodgson condensation
+  - computer-assisted proof
+  - Polya frequency function

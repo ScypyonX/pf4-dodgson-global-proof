@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-03-01T13:15:25.932452",
+  "method": "adaptive interval-arithmetic Taylor tiling",
+  "mode": "full",
+  "domain_hcu": {
+    "gaps": [
+      10,
+      44
+    ],
+    "s": [
+      -80,
+      80
+    ]
+  },
+  "domain_real": {
+    "gaps": [
+      0.05,
+      0.22
+    ],
+    "s": [
+      -0.4,
+      0.4
+    ]
+  },
+  "schur_overlap": "Schur complement covers any config with gap > 42 hcu (0.21 real)",
+  "certified": true,
+  "worst_lower_bound": 0.0005014103204606934,
+  "max_depth_limit": 8,
+  "time_s": 2157.2,
+  "stats": {
+    "boxes_certified": 25088,
+    "boxes_simplified": 21754,
+    "boxes_taylor": 3334,
+    "max_depth_used": 0,
+    "boxes_failed": 0,
+    "total_boxes_tried": 25088,
+    "cells_processed": 25088
+  },
+  "metadata": {
+    "repository": "https://github.com/ScypyonX/pf4-dodgson-global-proof",
+    "python_version": "3.10.12 (main, Jan 26 2026, 14:55:28) [GCC 11.4.0]",
+    "platform": "Linux-6.8.0-94-generic-aarch64-with-glibc2.35",
+    "mpmath_version": "1.3.0",
+    "precision_digits": 80,
+    "n_series_max": 500,
+    "hcu_to_real": 0.005,
+    "delta_real": 0.05,
+    "S_real": 0.4,
+    "G_real": 0.6,
+    "arithmetic": "interval (mpmath.iv, outward rounding)"
+  }
+}

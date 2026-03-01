@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-03-01T12:30:31.432824",
+  "region": "Large-gap tail (\u2203 gap > G)",
+  "method": "Schur complement ratio: \u03c1 = c^T B^{-1} c / d < 1",
+  "G_used": 0.6,
+  "worst_ratio_at_G060": 0.9853663578366647,
+  "threshold_G": 0.21,
+  "threshold_ratio": 0.9931158642397923,
+  "ratio_scan": {
+    "G_0.30": 0.9899002572949808,
+    "G_0.35": 0.9883132477714808,
+    "G_0.40": 0.9871035194767221,
+    "G_0.45": 0.986262557259485,
+    "G_0.50": 0.9857507104069688,
+    "G_0.55": 0.98548318977467,
+    "G_0.60": 0.9853663578366647,
+    "G_0.75": 0.9853120271864074,
+    "G_1.00": 0.985311715813965
+  },
+  "n_positions": 6,
+  "n_partitions_per_position": 4,
+  "n_shift_values": 9,
+  "certified": true,
+  "metadata": {
+    "repository": "https://github.com/ScypyonX/pf4-dodgson-global-proof",
+    "python_version": "3.10.12 (main, Jan 26 2026, 14:55:28) [GCC 11.4.0]",
+    "platform": "Linux-6.8.0-94-generic-aarch64-with-glibc2.35",
+    "mpmath_version": "1.3.0",
+    "precision_digits": 60,
+    "n_series_max": 500,
+    "hcu_to_real": 0.005,
+    "delta_real": 0.05,
+    "S_real": 0.4,
+    "G_real": 0.6
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "all_ok": true,
+  "phases": {
+    "K2": true,
+    "E0": true,
+    "core": {
+      "ok": true,
+      "evals": 78125,
+      "min_L": 0.30774850560171085,
+      "step": 0.02
+    },
+    "boundary": {
+      "ok": true,
+      "evals": 587925,
+      "min_L": 0.6472245592935104,
+      "step": 0.05
+    },
+    "tail": {
+      "ok": true,
+      "evals": 324,
+      "min_L": 4.3039610218258275
+    }
+  },
+  "time_s": 30.8,
+  "ts": "2026-03-01T10:56:56.821291",
+  "metadata": {
+    "repository": "https://github.com/ScypyonX/pf4-dodgson-global-proof",
+    "python_version": "3.10.12 (main, Jan 26 2026, 14:55:28) [GCC 11.4.0]",
+    "platform": "Linux-6.8.0-94-generic-aarch64-with-glibc2.35",
+    "mpmath_version": "1.3.0",
+    "precision_digits": 60,
+    "n_series_max": 500,
+    "hcu_to_real": 0.005,
+    "delta_real": 0.05,
+    "S_real": 0.4,
+    "G_real": 0.6
+  }
+}

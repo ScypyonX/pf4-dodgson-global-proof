@@ -1,0 +1,291 @@
+{
+  "timestamp": "2026-03-01T10:52:50.428944",
+  "method": "interval-arithmetic Taylor model on L4",
+  "gradient_method": "interval Richardson: G_k = max(|g1|,|g2|) + |g1-g2|, eps=1,2",
+  "hessian_method": "interval: |H(c)| + sum|dH|*r + 2*sum|d2H|*r^2, verified at 14 faces",
+  "arithmetic": "mpmath.iv at 80 digits, outward rounding",
+  "mini_cell_hcu": {
+    "gaps": [
+      10.0,
+      15.0
+    ],
+    "s": [
+      -10.0,
+      10.0
+    ]
+  },
+  "mini_cell_real": {
+    "gaps": [
+      0.05,
+      0.075
+    ],
+    "s": [
+      -0.05,
+      0.05
+    ]
+  },
+  "subdivision": {
+    "M_s": 8,
+    "M_g": 1,
+    "n_boxes": 8
+  },
+  "certified": true,
+  "worst_lower_bound": 0.07239848310316246,
+  "worst_box_index": 3,
+  "worst_box_interval": {
+    "s_lo_hcu": -2.5,
+    "s_hi_hcu": 0.0,
+    "gaps_hcu": [
+      10.0,
+      15.0
+    ]
+  },
+  "sub_box_results": [
+    {
+      "center": [
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        -8.75
+      ],
+      "radii": [
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        1.25
+      ],
+      "L4_center": 0.6260751538404534,
+      "L4_center_width": 6.73594513500575e-12,
+      "grad_term": 0.31488052690662044,
+      "hess_term": 0.16406362187646445,
+      "lower_bound": 0.14713100505400056,
+      "max_face_ratio": 0.8686517300784311,
+      "n_violations": 0,
+      "verified": true,
+      "max_grad_delta": 0.0001011916098574428
+    },
+    {
+      "center": [
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        -6.25
+      ],
+      "radii": [
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        1.25
+      ],
+      "L4_center": 0.5837014675350187,
+      "L4_center_width": 7.1311845317723055e-12,
+      "grad_term": 0.2996916857334786,
+      "hess_term": 0.18487601292884723,
+      "lower_bound": 0.09913376886912731,
+      "max_face_ratio": 0.800645874967606,
+      "n_violations": 0,
+      "verified": true,
+      "max_grad_delta": 9.067585701272307e-05
+    },
+    {
+      "center": [
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        -3.75
+      ],
+      "radii": [
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        1.25
+      ],
+      "L4_center": 0.5533869706729817,
+      "L4_center_width": 7.256417688950023e-12,
+      "grad_term": 0.2862707622007288,
+      "hess_term": 0.19343840263173429,
+      "lower_bound": 0.07367780583689043,
+      "max_face_ratio": 0.7173990318011207,
+      "n_violations": 0,
+      "verified": true,
+      "max_grad_delta": 7.270496530265014e-05
+    },
+    {
+      "center": [
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        -1.25
+      ],
+      "radii": [
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        1.25
+      ],
+      "L4_center": 0.5375541695389794,
+      "L4_center_width": 6.501466032204917e-12,
+      "grad_term": 0.2752513257224051,
+      "hess_term": 0.18990436071016106,
+      "lower_bound": 0.07239848310316246,
+      "max_face_ratio": 0.6730759804275026,
+      "n_violations": 0,
+      "verified": true,
+      "max_grad_delta": 4.800084449918529e-05
+    },
+    {
+      "center": [
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        1.25
+      ],
+      "radii": [
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        1.25
+      ],
+      "L4_center": 0.5375541695389843,
+      "L4_center_width": 6.433076293888007e-12,
+      "grad_term": 0.2752513257214437,
+      "hess_term": 0.18990436063166974,
+      "lower_bound": 0.07239848318265432,
+      "max_face_ratio": 0.6730759799058426,
+      "n_violations": 0,
+      "verified": true,
+      "max_grad_delta": 4.8000844485418526e-05
+    },
+    {
+      "center": [
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        3.75
+      ],
+      "radii": [
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        1.25
+      ],
+      "L4_center": 0.5533869706729742,
+      "L4_center_width": 7.099210108663101e-12,
+      "grad_term": 0.28627076219754133,
+      "hess_term": 0.19343840246165758,
+      "lower_bound": 0.07367780601022564,
+      "max_face_ratio": 0.7173990307571634,
+      "n_violations": 0,
+      "verified": true,
+      "max_grad_delta": 7.270496515832114e-05
+    },
+    {
+      "center": [
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        6.25
+      ],
+      "radii": [
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        1.25
+      ],
+      "L4_center": 0.5837014675350245,
+      "L4_center_width": 6.945555242054979e-12,
+      "grad_term": 0.2996916857305035,
+      "hess_term": 0.18487601274264803,
+      "lower_bound": 0.09913376905840021,
+      "max_face_ratio": 0.8006458735913018,
+      "n_violations": 0,
+      "verified": true,
+      "max_grad_delta": 9.067585688415924e-05
+    },
+    {
+      "center": [
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        12.5,
+        8.75
+      ],
+      "radii": [
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        2.5,
+        1.25
+      ],
+      "L4_center": 0.6260751538404499,
+      "L4_center_width": 6.650680006714538e-12,
+      "grad_term": 0.3148805269042823,
+      "hess_term": 0.1640636216961392,
+      "lower_bound": 0.14713100523670303,
+      "max_face_ratio": 0.8686517288147881,
+      "n_violations": 0,
+      "verified": true,
+      "max_grad_delta": 0.00010119160972199559
+    }
+  ],
+  "iv_cache_size": 199,
+  "metadata": {
+    "repository": "https://github.com/ScypyonX/pf4-dodgson-global-proof",
+    "python_version": "3.10.12 (main, Jan 26 2026, 14:55:28) [GCC 11.4.0]",
+    "platform": "Linux-6.8.0-94-generic-aarch64-with-glibc2.35",
+    "mpmath_version": "1.3.0",
+    "precision_digits": 80,
+    "n_series_max": 500,
+    "hcu_to_real": 0.005,
+    "delta_real": 0.05,
+    "S_real": 0.4,
+    "G_real": 0.6,
+    "arithmetic": "interval (mpmath.iv, outward rounding)"
+  }
+}

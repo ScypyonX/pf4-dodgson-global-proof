@@ -1,0 +1,115 @@
+{
+  "timestamp": "2026-03-01T10:57:02.618422",
+  "claim": "K is not PF_5",
+  "method": "Toeplitz 5x5 det via interval arithmetic at 80 digits",
+  "n_configs": 12,
+  "all_certified_negative": true,
+  "strongest_counterexample": {
+    "u0": "0.01",
+    "h": "0.05",
+    "det5_interval": [
+      -1.8472387314937023e-09,
+      -1.8472334153368367e-09
+    ]
+  },
+  "configs": [
+    {
+      "u0": "0.01",
+      "h": "0.03",
+      "det5_lo": -6.415031011135295e-13,
+      "det5_hi": -6.295190251574727e-13,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.01",
+      "h": "0.035",
+      "det5_lo": -1.01807570426971e-11,
+      "det5_hi": -1.0170886252719429e-11,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.01",
+      "h": "0.04",
+      "det5_lo": -9.712742954139409e-11,
+      "det5_hi": -9.711982129575754e-11,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.01",
+      "h": "0.045",
+      "det5_lo": -5.740229807562516e-10,
+      "det5_hi": -5.740162964167124e-10,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.01",
+      "h": "0.05",
+      "det5_lo": -1.8472387314937023e-09,
+      "det5_hi": -1.8472334153368367e-09,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.02",
+      "h": "0.03",
+      "det5_lo": -4.1171887318252864e-13,
+      "det5_hi": -3.997550984377635e-13,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.02",
+      "h": "0.035",
+      "det5_lo": -6.283150111431438e-12,
+      "det5_hi": -6.274059350901976e-12,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.02",
+      "h": "0.04",
+      "det5_lo": -5.513362603360965e-11,
+      "det5_hi": -5.512558430087612e-11,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.02",
+      "h": "0.045",
+      "det5_lo": -2.576441232903906e-10,
+      "det5_hi": -2.576368588476055e-10,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.02",
+      "h": "0.05",
+      "det5_lo": -7.02155652124454e-11,
+      "det5_hi": -7.021042210451676e-11,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.03",
+      "h": "0.03",
+      "det5_lo": -6.634147715081978e-14,
+      "det5_hi": -5.6824223083347163e-14,
+      "certified_negative": true
+    },
+    {
+      "u0": "0.03",
+      "h": "0.035",
+      "det5_lo": -4.499686966743789e-13,
+      "det5_hi": -4.4056644121454983e-13,
+      "certified_negative": true
+    }
+  ],
+  "time_s": 0.1,
+  "metadata": {
+    "repository": "https://github.com/ScypyonX/pf4-dodgson-global-proof",
+    "python_version": "3.10.12 (main, Jan 26 2026, 14:55:28) [GCC 11.4.0]",
+    "platform": "Linux-6.8.0-94-generic-aarch64-with-glibc2.35",
+    "mpmath_version": "1.3.0",
+    "precision_digits": 80,
+    "n_series_max": 500,
+    "hcu_to_real": 0.005,
+    "delta_real": 0.05,
+    "S_real": 0.4,
+    "G_real": 0.6,
+    "arithmetic": "interval (mpmath.iv, outward rounding)"
+  }
+}

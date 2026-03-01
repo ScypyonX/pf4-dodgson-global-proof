@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-03-01T10:57:02.435644",
+  "region": "Coalescence (\u2203 gap < \u03b4)",
+  "method": "direct D\u2084 eval + Richardson extrapolation for \u00d1",
+  "min_D4_single_gap": 1.4943069240297497e-23,
+  "min_D4_two_gaps": 1.4176063289499802e-26,
+  "min_N_tilde": 8.247844821553278e-23,
+  "min_D4_over_gap": 1.4943069240297496e-22,
+  "n_evals_phase1": 432,
+  "n_evals_phase2": 1200,
+  "certified": true,
+  "phi_cache_size": 163,
+  "metadata": {
+    "repository": "https://github.com/ScypyonX/pf4-dodgson-global-proof",
+    "python_version": "3.10.12 (main, Jan 26 2026, 14:55:28) [GCC 11.4.0]",
+    "platform": "Linux-6.8.0-94-generic-aarch64-with-glibc2.35",
+    "mpmath_version": "1.3.0",
+    "precision_digits": 60,
+    "n_series_max": 500,
+    "hcu_to_real": 0.005,
+    "delta_real": 0.05,
+    "S_real": 0.4,
+    "G_real": 0.6
+  }
+}

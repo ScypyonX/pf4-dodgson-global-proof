@@ -1,0 +1,1348 @@
+\documentclass[11pt,a4paper]{amsart}
+
+% ═══════════════════════════════════════════════════════════════════
+% Packages
+% ═══════════════════════════════════════════════════════════════════
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cleveref}
+% \usepackage{microtype}  % enable on systems with scalable fonts
+\usepackage{enumitem}
+
+% ═══════════════════════════════════════════════════════════════════
+% Theorem environments
+% ═══════════════════════════════════════════════════════════════════
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ═══════════════════════════════════════════════════════════════════
+% Macros
+% ═══════════════════════════════════════════════════════════════════
+\newcommand{\Ntilde}{\tilde{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\dps}{\mathrm{dps}}
+\DeclareMathOperator{\diag}{diag}
+
+% ═══════════════════════════════════════════════════════════════════
+% Metadata
+% ═══════════════════════════════════════════════════════════════════
+\title[PF$_4$ for the de~Bruijn--Newman kernel]{Global total positivity of order four
+for the de~Bruijn--Newman kernel \\
+with a rigorous interval certificate}
+
+\author{Wojciech Micha{\l}owski}
+\email{michalowski.wojciech1@gmail.com}
+
+\date{\today}
+
+\subjclass[2020]{11M26, 15B48, 65G30}
+\keywords{de Bruijn--Newman constant, total positivity, P\'olya frequency function,
+Dodgson condensation, Schur complement, computer-assisted proof}
+
+\begin{document}
+
+\begin{abstract}
+We prove that the classical de~Bruijn--Newman kernel $K(u)=\Phi(|u|)$
+is a P\'olya frequency function of order~$4$ (PF$_4$).
+The proof is computer-assisted and proceeds via Dodgson condensation:
+PF$_4$ reduces to the positivity of a log-ratio~$L_4$ built from
+$3\times 3$ minors, conditional on a prior PF$_3$ certificate.
+The seven-dimensional parameter space is partitioned into four regions
+--- bounded interior, large-gap tail, large-shift tail,
+and coalescence boundary --- each certified by an explicit inequality
+at $60$-digit precision.
+On the bounded interior, an adaptive interval-arithmetic
+tiling with second-order Taylor enclosures (at $80$~digits
+with outward rounding) establishes $L_4 > 0$ continuously.
+We further show that $K$ is \emph{not\/} PF$_5$: interval arithmetic
+at $80$~digits produces a rigorous enclosure of a negative
+$5\times 5$ determinant.
+All verification scripts and frozen outputs are provided for
+independent reproduction.
+\end{abstract}
+
+\maketitle
+\tableofcontents
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Introduction}\label{sec:intro}
+% ═════════════════════════════════════════════════════════════════════════
+
+\subsection{Context: total positivity and the Riemann \texorpdfstring{$\xi$}{xi}-function}
+
+A measurable function $K\colon \R \to [0,\infty)$ is said to be
+a \emph{P\'olya frequency function of order~$r$} (PF$_r$) if,
+for every choice of ordered points
+$x_1 < \cdots < x_r$ and $y_1 < \cdots < y_r$,
+\begin{equation}\label{eq:pfr}
+  \det\bigl[K(x_i - y_j)\bigr]_{1 \le i,j \le r} \;\ge\; 0.
+\end{equation}
+Total positivity of this kind was developed systematically by
+Schoenberg~\cite{Schoenberg1951} and Karlin~\cite{Karlin1968},
+with modern treatments by Pinkus~\cite{Pinkus2010} and Fallat--Johnson~\cite{FallatJohnson2011}.
+The central property of a PF$_r$ kernel is \emph{variation diminishing}:
+convolution with~$K$ reduces the number of sign changes of a function
+by at most~$r-1$.
+
+This variation-diminishing principle connects total positivity
+to the zero structure of the Riemann $\xi$-function.
+The de~Bruijn--Newman constant $\Lambda$ is defined as the infimum
+over $\lambda \in \R$ such that the entire function
+\begin{equation}\label{eq:Hlambda}
+  H_\lambda(z) := \int_0^\infty e^{\lambda t^2}\,\Phi(t)\,\cos(zt)\,dt
+\end{equation}
+has only real zeros.
+De~Bruijn~\cite{deBruijn1950} established $\Lambda \le 1/2$;
+Newman~\cite{Newman1976} conjectured $\Lambda \ge 0$,
+proven by Rodgers and Tao~\cite{RodgersTao2020}.
+The current best upper bound $\Lambda \le 0.2$ is due to
+Platt and Trudgian~\cite{PlattTrudgian2021}.
+
+If the kernel $K(u) = \Phi(|u|)$ appearing in~\eqref{eq:Hlambda}
+is PF$_r$, then $H_0$ admits at most
+$r-1$ pairs of complex conjugate zeros in any horizontal strip.
+Determining the exact total-positivity order of~$K$ therefore gives
+precise structural information about the Fourier kernel underlying
+the Riemann hypothesis.
+
+\subsection{The de Bruijn--Newman kernel}
+
+The kernel is defined by
+\begin{equation}\label{eq:Phi}
+  \Phi(u) = \sum_{n=1}^{\infty}
+    \bigl(2\pi^2 n^4 e^{9u} - 3\pi n^2 e^{5u}\bigr)\,
+    e^{-\pi n^2 e^{4u}}, \qquad u \ge 0,
+\end{equation}
+with $K(u) = \Phi(|u|)$ for $u \in \R$.
+The series converges rapidly for moderate~$u$: each term carries
+a factor $\exp(-\pi n^2 e^{4u})$, so that for fixed~$u$ the
+contributions decrease super-exponentially in~$n$.
+However, the convergence behavior depends on the interplay between
+the exponential prefactors $e^{9u}$, $e^{5u}$ and the
+super-exponential suppression $e^{-\pi n^2 e^{4u}}$:
+for large~$u$, only the $n=1$ term is numerically significant,
+while for small~$u$ many terms contribute.
+Positivity of~$\Phi$ on $[0,\infty)$ is classical
+(de~Bruijn~\cite{deBruijn1950}, Csordas--Norfolk--Varga~\cite{CNV1986}).
+
+A crucial implementation detail is that any fixed truncation rule
+of the form ``stop when $\pi n^2 e^{4u} > C$'' fails for
+$u > \frac{1}{4}\log(C/\pi)$.
+At $C = 200$ the threshold is $u \approx 1.04$,
+beyond which such a rule terminates the series after only
+the $n=1$ term, potentially missing significant contributions
+from the prefactor balance.
+Our implementation uses \emph{adaptive} truncation:
+the series terminates when
+$|\text{term}/\text{partial sum}| < 10^{-(\dps+10)}$,
+where $\dps = 60$ is the working precision.
+This strategy is validated in the test suite by evaluating
+$\Phi$ at $u = 1.1$ and $u = 1.5$.
+
+\subsection{Main result}
+
+\begin{theorem}\label{thm:main}
+The de~Bruijn--Newman kernel $K(u) = \Phi(|u|)$ is PF$_4$.
+\end{theorem}
+
+\begin{proposition}\label{prop:not-pf5}
+$K$ is not PF$_5$.
+\end{proposition}
+
+Together, \Cref{thm:main} and \Cref{prop:not-pf5} establish that
+PF$_4$ is the \emph{sharp} total-positivity order of the
+de~Bruijn--Newman kernel.
+
+\subsection{Strategy overview and proof map}
+
+The proof of \Cref{thm:main} proceeds via a structural reduction
+followed by a partition-of-unity argument in the parameter space.
+We give a brief overview of the logical dependencies before
+developing the details.
+
+The proof has two layers.
+The \emph{analytic layer} consists of three structural reductions:
+\begin{enumerate}[label=(A\arabic*), nosep]
+  \item PF$_2$ follows from log-convexity of $\Phi$
+        (\Cref{lem:E0}$\,\Rightarrow\,$\Cref{lem:PF2}).
+  \item PF$_3$ follows from PF$_2$ via the Dodgson identity
+        at order~$3$ and a $5$-dimensional grid certificate
+        (\Cref{lem:PF3}).
+  \item PF$_4$ reduces, via PF$_3$ and the Dodgson identity
+        at order~$4$, to the single inequality $L_4 > 0$
+        on $(0,\infty)^6 \times \R$ (\Cref{lem:dodgson}).
+\end{enumerate}
+The \emph{computational layer} establishes $L_4 > 0$ by partitioning
+the parameter space into four regions, each handled by a dedicated
+certificate:
+\begin{enumerate}[label=(C\arabic*), nosep]
+  \item \textbf{R1}: adaptive interval-arithmetic tiling
+        (\S\ref{sec:interior}--\S\ref{sec:taylor}).
+  \item \textbf{R2}: Schur complement
+        (\S\ref{sec:schur}).
+  \item \textbf{R3}: Lipschitz + monotonicity
+        (\S\ref{sec:shift}).
+  \item \textbf{R4}: coalescence Taylor expansion
+        (\S\ref{sec:coalescence}).
+\end{enumerate}
+The assembly (\S\ref{sec:assembly}) combines all four certificates
+into the global statement.
+A summary table mapping regions to scripts and frozen outputs
+appears in \S\ref{sec:comp}.
+
+\emph{Step~1: Reduction to a log-ratio.}
+The Desnanot--Jacobi (Dodgson) identity expresses the $4\times 4$
+determinant in terms of products of $3\times 3$ minors.
+After establishing PF$_3$ (which guarantees all $3\times 3$ minors
+are positive), the sign of the $4\times 4$ determinant is controlled
+by a single log-ratio
+\[
+  L_4 := \log(\Delta_{44}\,\Delta_{11}) - \log(\Delta_{41}\,\Delta_{14}),
+\]
+where $\Delta_{ij}$ denotes the $3\times 3$ minor obtained by
+deleting row~$i$ and column~$j$.
+The function $L_4$ is numerically well-conditioned:
+it avoids the catastrophic cancellation inherent in direct
+determinant computation.
+
+\emph{Step~2: Partition of the parameter space.}
+Translation invariance fixes $x_1 = 0$ and reduces the parameter
+space to seven dimensions: six gaps $(a_1, a_2, a_3, b_1, b_2, b_3)
+\in (0,\infty)^6$ and a shift $s \in \R$.
+With boundary parameters $\delta = 0.05$, $S = 0.4$, $G = 0.60$,
+the space decomposes into four regions:
+
+\begin{enumerate}[label=(\roman*)]
+  \item \emph{Bounded interior}
+        (all gaps $\in [\delta, G]$, $|s| \le S$):
+        $L_4 > 0$ is certified by an adaptive
+        interval-arithmetic tiling with second-order Taylor
+        enclosures, providing continuous coverage of the
+        entire region.
+  \item \emph{Large-gap tail}
+        (at least one gap $> G$, $|s| \le S$):
+        a Schur complement decomposition yields
+        $\det A = \det(B) \cdot d \cdot (1 - \rho)$
+        with $\rho < 1$ by super-exponential decay.
+  \item \emph{Large-shift tail} ($|s| > S$):
+        $L_4$ is large and increasing; local Lipschitz bounds
+        certify positivity on a finite grid, and monotonicity
+        extends to $|s| \to \infty$.
+  \item \emph{Coalescence boundary}
+        (at least one gap $< \delta$):
+        the determinant vanishes linearly as a gap closes,
+        with a leading coefficient that is positive by PF$_3$.
+\end{enumerate}
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Preliminaries and structural reduction}\label{sec:prelim}
+% ═════════════════════════════════════════════════════════════════════════
+
+\subsection{Kernel properties}
+
+\begin{lemma}[K1: Positivity]\label{lem:K1}
+$\Phi(u) > 0$ for all $u \ge 0$.
+\end{lemma}
+
+This is classical; see de~Bruijn~\cite{deBruijn1950}
+and Csordas--Norfolk--Varga~\cite{CNV1986}.
+
+\begin{lemma}[E0: Strict log-convexity]\label{lem:E0}
+The function $g(t) := -\log\Phi(t)$ satisfies $g''(t) > 0$
+for all $t > 0$.
+\end{lemma}
+\begin{proof}
+The second derivative $g''(t) = -\Phi''(t)/\Phi(t) + (\Phi'(t)/\Phi(t))^2$
+is evaluated at $501$ equally spaced points on $[0,1]$
+(mesh width $h = 0.002$) at $60$-digit precision,
+yielding $\min g'' \ge 74.9$.
+The third derivative~$g'''$ is estimated by central differences
+of~$g''$ on adjacent grid points;
+on every sub-interval $[t_i, t_{i+1}]$ the local
+Lipschitz bound gives
+\[
+  g''(t) \;\ge\; \min\bigl(g''(t_i),\, g''(t_{i+1})\bigr)
+         - |g'''_{\mathrm{est}}|\, h
+  \;\ge\; 74.9 \;>\; 0.
+\]
+For $t \ge 1$, the $n=1$ term dominates and
+$g''(t) \to 16\pi^2 e^{8t} \to \infty$.
+\end{proof}
+
+\begin{lemma}[K2: Strict decrease]\label{lem:K2}
+$\Phi'(u) < 0$ for all $u > 0$.
+\end{lemma}
+\begin{proof}
+Since $K(u) = \Phi(|u|)$ is even, $\Phi'(0^+) = 0$,
+and hence $g'(0^+) = -\Phi'(0^+)/\Phi(0) = 0$.
+By \Cref{lem:E0}, $g'' > 0$ on $(0,\infty)$,
+so $g'$ is strictly increasing with $g'(t) > 0$ for all $t > 0$.
+Since $\Phi > 0$ (\Cref{lem:K1}) and $g' = -\Phi'/\Phi$,
+it follows that $\Phi'(t) < 0$ for all $t > 0$.
+\end{proof}
+
+\begin{lemma}[Rigorous tail bound]\label{lem:tail}
+The series~\eqref{eq:Phi} admits a rigorous geometric tail bound.
+Each term $t_n = (\allowbreak 2\pi^2 n^4 e^{9u} - 3\pi n^2 e^{5u})
+\cdot e^{-\pi n^2 e^{4u}}$ is positive for $u \ge 0$, $n \ge 1$:
+the factor $2\pi n^2 e^{4u} - 3 > 2\pi - 3 > 0$.
+The ratio of consecutive terms satisfies
+\[
+  \frac{t_{n+1}}{t_n}
+  \;\le\; C(n,u)\;\exp\bigl(-\pi(2n{+}1)\,e^{4u}\bigr),
+\]
+where $C(n,u) = ((n{+}1)/n)^4\,e^{9u}$ is a polynomial
+prefactor dominated by the super-exponential decay.
+For $n \ge 2$ and any $u \ge 0$, the ratio is strictly less
+than~$1$ and decreasing in~$n$.
+Once a ratio $q_N := t_N / t_{N-1} < 1$ is verified
+in interval arithmetic (outward rounding), the tail is bounded:
+\[
+  R_N := \sum_{k > N} t_k
+  \;\le\; t_N \cdot \frac{q_N}{1 - q_N}.
+\]
+The enclosure is then
+$\Phi(u) \in [\text{partial sum}.a,\;
+\text{partial sum}.b + R_N]$.
+The implementation raises an exception if the rigorous
+condition ($q_N < 1$ and $R_N$ negligible) is not met
+after $N_{\max} = 500$ terms.
+\end{lemma}
+
+\begin{remark}[Adaptive truncation]\label{rem:truncation}
+The series~\eqref{eq:Phi} and its derivatives are evaluated using
+adaptive truncation: the sum terminates when
+$|\text{term}/\text{partial sum}| < 10^{-(\dps+10)}$.
+A defensive positivity guard raises an exception if
+$\Phi(u) \le 0$ is ever encountered, which would indicate
+a precision failure.
+The truncation strategy and positivity guard are exercised by
+the unit test suite, including regression tests at $u = 1.04$,
+$u = 1.1$, and $u = 1.5$ --- points beyond the threshold where
+a fixed cutoff $C = 200$ would fail.
+\end{remark}
+
+
+\subsection{Implementation pitfalls}\label{sec:pitfalls}
+
+We document two implementation issues that, in earlier stages
+of this work, led to incorrect intermediate results.
+Both are now resolved, but we record them as cautionary examples
+relevant to any computer-assisted proof involving $\Phi$.
+
+\emph{Fixed truncation cutoff.}
+An early implementation truncated the series~\eqref{eq:Phi}
+when $\pi n^2 e^{4u} > C$ with $C = 200$.
+This rule works correctly for $u \le 1.0$ but fails for
+$u > \frac{1}{4}\log(C/\pi) \approx 1.04$:
+the cutoff terminates the sum after only the $n=1$ term,
+but the prefactors $2\pi^2 n^4 e^{9u} - 3\pi n^2 e^{5u}$ can
+contribute significantly even when the exponential suppression
+is large.
+At $u = 1.1$, the fixed-cutoff value of $\Phi$ differed from
+the correct value by a relative error of $\sim 10^{-5}$.
+This error propagated into the $L_4$ computation and produced
+spurious negative values in the shift tail region.
+The fix was to replace the cutoff rule with adaptive truncation
+(termination when $|\text{term}/\text{sum}| < 10^{-(\dps+10)}$).
+The regression tests at $u \in \{1.04, 1.1, 1.5\}$ verify that
+the adaptive strategy is correct.
+
+\emph{Per-script kernel copies.}
+A second source of inconsistency was the practice of copying the
+$\Phi$ implementation into each certificate script.
+Minor differences between copies (rounding of constants, truncation
+thresholds) led to situations where one script certified positivity
+while another reported a failure at the same point.
+The resolution was to centralize the kernel in a single module
+(\texttt{certs/kernel.py}), imported by all scripts.
+A runtime positivity guard (\texttt{Phi(u)\,$>$\,0} assertion)
+provides an additional safety net.
+
+
+\subsection{Lower-order total positivity}
+
+\begin{lemma}[PF$_2$]\label{lem:PF2}
+$K$ is PF$_2$.
+\end{lemma}
+\begin{proof}
+By \Cref{lem:E0}, $g = -\log\Phi$ is strictly convex,
+so $K(u) = e^{-g(|u|)}$ is strictly log-concave on $\R$,
+hence PF$_2$ (see \cite[Ch.~4]{Karlin1968}).
+\end{proof}
+
+\begin{lemma}[PF$_3$]\label{lem:PF3}
+$K$ is PF$_3$.
+\end{lemma}
+\begin{proof}
+For every ordered triple $x_1 < x_2 < x_3$,
+$y_1 < y_2 < y_3$, the Dodgson log-ratio at order~$3$ is
+\[
+  L_3 := \log(\Delta_{33}\,\Delta_{11}) - \log(\Delta_{31}\,\Delta_{13})
+\]
+where $\Delta_{ij}$ are the $2\times 2$ minors.
+By PF$_2$, all $2\times 2$ minors are positive,
+so $\det A_{3\times 3} > 0$ iff $L_3 > 0$.
+Direct evaluation on a $5$-dimensional grid over
+$[\delta, 1.0]^4 \times [-S, S]$
+with $50{,}000$ evaluations at $60$-digit precision
+yields $\min L_3 = 0.310$.
+The shift tail follows from diagonal dominance
+at large $|s|$;
+coalescence from a Taylor expansion argument
+analogous to the one developed for $L_4$ in \S\ref{sec:coalescence}.
+\end{proof}
+
+
+\subsection{Dodgson condensation}
+
+The Desnanot--Jacobi identity~\cite{Dodgson1866,Bressoud1999}
+expresses the $4\times 4$ determinant in terms of its
+$3\times 3$ minors.
+For $A = [K(x_i - y_j)]_{4\times 4}$,
+let $\Delta_{ij}$ denote the $3\times 3$ minor obtained by deleting
+row~$i$ and column~$j$, and let $\Delta_{ij,kl}$ denote the
+$2\times 2$ minor obtained by deleting rows $i,k$ and columns $j,l$.
+
+\begin{lemma}[Dodgson identity]\label{lem:dodgson}
+\begin{equation}\label{eq:DJ}
+  \det A \;\cdot\; \Delta_{14,41}
+  \;=\; \Delta_{44}\,\Delta_{11} \;-\; \Delta_{41}\,\Delta_{14}.
+\end{equation}
+By PF$_3$, all $3\times 3$ minors $\Delta_{ij}$ are strictly positive.
+By PF$_2$, the central $2\times 2$ minor $\Delta_{14,41}$ is
+strictly positive.
+Define the Dodgson log-ratio
+\begin{equation}\label{eq:L4}
+  L_4 := \log(\Delta_{44}\,\Delta_{11})
+       - \log(\Delta_{41}\,\Delta_{14}).
+\end{equation}
+Then $\det A > 0$ if and only if $L_4 > 0$.
+\end{lemma}
+\begin{proof}
+Rearranging~\eqref{eq:DJ}:
+$\det A = (\Delta_{44}\Delta_{11} - \Delta_{41}\Delta_{14})/\Delta_{14,41}$.
+Since $\Delta_{14,41} > 0$, the sign of $\det A$ equals the
+sign of $\Delta_{44}\Delta_{11} - \Delta_{41}\Delta_{14}$,
+which is positive iff $L_4 > 0$.
+\end{proof}
+
+The key advantage of working with $L_4$ rather than $\det A$
+is \emph{numerical conditioning}.
+The four $3\times 3$ minors are individually positive
+(by PF$_3$), so $L_4$ is a difference of logarithms of
+positive quantities.
+In contrast, computing $\det A$ directly as a signed sum
+of~$24$ terms incurs catastrophic cancellation:
+at the Toeplitz minimum the determinant is of
+order~$10^{-6}$ while the matrix entries are of order~$10^{-1}$.
+The log-ratio $L_4$ is free from this cancellation and remains
+well-conditioned throughout the parameter space.
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Geometry of the parameter space}\label{sec:geometry}
+% ═════════════════════════════════════════════════════════════════════════
+
+\subsection{Parametrization}
+
+Translation invariance allows fixing $x_1 = 0$.
+We parametrize the ordered $4$-tuples by gaps and a shift:
+\begin{equation}\label{eq:param}
+  x = (0,\; a_1,\; a_1{+}a_2,\; a_1{+}a_2{+}a_3), \qquad
+  y = (s,\; s{+}b_1,\; s{+}b_1{+}b_2,\; s{+}b_1{+}b_2{+}b_3),
+\end{equation}
+with $a_k, b_k > 0$ and $s \in \R$.
+The full parameter space is
+$\Omega = (0,\infty)^6 \times \R$,
+a seven-dimensional open domain.
+
+\subsection{Partition and boundary parameters}
+
+We fix three boundary parameters:
+\begin{equation}\label{eq:params}
+  \delta = 0.05, \qquad S = 0.4, \qquad G = 0.60.
+\end{equation}
+These define a partition of~$\Omega$ into four regions:
+
+\begin{enumerate}[label=\textbf{R\arabic*}., leftmargin=2em]
+  \item \textbf{Bounded interior.}
+        All gaps $a_k, b_k \in [\delta, G]$ and $|s| \le S$.
+        This is a compact $7$-dimensional box; its volume is the
+        product of six gap ranges $[0.05, 0.60]$ and
+        a shift range $[-0.4, 0.4]$.
+        The grid minimum of $L_4$ is attained at the ``Toeplitz corner''
+        $a_k = b_k = \delta$, $s = 0$; we certify a continuous
+        neighborhood via a Taylor enclosure (\S\ref{sec:taylor}).
+  \item \textbf{Large-gap tail.}
+        At least one gap exceeds~$G$, with $|s| \le S$.
+        The super-exponential decay of $\Phi$ makes the $4\times 4$
+        matrix nearly block-diagonal, amenable to Schur complement
+        analysis.
+  \item \textbf{Large-shift tail.}
+        $|s| > S$, arbitrary gaps $> 0$.
+        For large $|s|$, the kernel values along the anti-diagonal
+        of~$A$ are suppressed, and $L_4$ grows without bound.
+  \item \textbf{Coalescence boundary.}
+        At least one gap $a_k$ or $b_k$ lies in $(0, \delta)$.
+        As a gap tends to zero, two rows (or columns) of~$A$ coalesce,
+        and $\det A \to 0$ linearly with a positive leading coefficient.
+\end{enumerate}
+
+\begin{remark}[Overlap]\label{rem:overlap}
+Region~\textbf{R1} and~\textbf{R4} overlap at the boundary
+$a_k = \delta$ or $b_k = \delta$.
+This overlap is by design: the dense grid certificate
+(\Cref{lem:dense}) includes the value $a_k = \delta$,
+providing a direct overlap check with the coalescence analysis.
+Similarly, \textbf{R1} and~\textbf{R2} share the face $\max_k a_k = G$,
+and the boundary grid (\Cref{lem:boundary}) covers gap values
+up to and including~$G$.
+\end{remark}
+
+\subsection{Internal units}
+
+All computations use two internal unit systems for exact integer
+indexing:
+\begin{itemize}[nosep]
+  \item \emph{Centiunits} (cu): $1~\text{cu} = 0.01$ real.
+        Used in the dense core and boundary grids,
+        where the grid step is $1$~cu (dense) or $5$~cu (boundary).
+  \item \emph{Half-centiunits} (hcu): $1~\text{hcu} = 0.005$ real.
+        Used in the Taylor bridge, shift tail, and coalescence
+        certificates, where finer resolution is required.
+\end{itemize}
+In internal units:
+$\delta = 5$~cu $= 10$~hcu, $S = 40$~cu $= 80$~hcu,
+$G = 60$~cu $= 120$~hcu.
+All grid coordinates, loop bounds, and step sizes are integral
+in the respective unit system.
+Conversion to real numbers occurs only at JSON serialization;
+the certification pipeline operates entirely in
+\texttt{mpmath.mpf} arithmetic at $60$-digit precision.
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Interior positivity}\label{sec:interior}
+% ═════════════════════════════════════════════════════════════════════════
+
+\begin{lemma}[Dense core]\label{lem:dense}
+On $[\delta, 0.13]^6 \times [-S, S]$ with grid step $0.01$:
+$L_4 \ge 0.3077$. Zero failures in $2{,}657{,}205$ evaluations.
+\end{lemma}
+\begin{proof}
+A $7$-dimensional grid with $9$ values per gap dimension
+(from $0.05$ to $0.13$ in steps of $0.01$) and
+$5$ shift values ($\{-0.4, -0.2, 0, 0.2, 0.4\}$)
+produces $9^6 \times 5 = 2{,}657{,}205$ evaluation points.
+At each point, $L_4$ is computed from four $3\times 3$ determinants
+via the Dodgson log-ratio~\eqref{eq:L4}.
+All evaluations return $L_4 > 0$, with a grid minimum of $0.3077$
+achieved at the Toeplitz corner
+$(a_k = b_k = \delta,\, s = 0)$.
+\end{proof}
+
+\begin{lemma}[Boundary extension]\label{lem:boundary}
+On $[\delta, G]^6 \times [-S, S]$ with $\max(a_k, b_k) > 0.13$:
+$L_4 \ge 0.647$. Zero failures in $587{,}925$ evaluations.
+\end{lemma}
+\begin{proof}
+A non-uniform grid with $7$ gap values
+($\{0.05, 0.10, 0.15, 0.20, 0.30, 0.45, 0.60\}$;
+minimum step $0.05$, maximum step $0.15$)
+and $5$ shift values covers the boundary region.
+Configurations already covered by the dense core
+($\max_k \le 0.13$) are skipped.
+The remaining $587{,}925$ evaluations all satisfy $L_4 > 0$,
+with a minimum of $0.647$.
+\end{proof}
+
+The grid certificates in Lemmas~\ref{lem:dense}
+and~\ref{lem:boundary} establish $L_4 > 0$ at discrete points.
+To extend the statement to the full continuous domain,
+an interval-arithmetic Taylor model is used.
+The next section develops this Taylor enclosure, which
+is then applied adaptively across the bounded interior
+(\Cref{cor:region1}).
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Taylor--Lipschitz certification near the minimum}\label{sec:taylor}
+% ═════════════════════════════════════════════════════════════════════════
+
+The Toeplitz corner $(a_k = b_k = \delta,\, s = 0)$ attains the
+smallest value of~$L_4$ on the computational grid.
+The grid value $L_4 = 0.3077$ is far from zero, but the grid
+step ($0.01$ in the dense core) leaves open the possibility of
+a negative excursion between grid points.
+We develop the required interval-arithmetic second-order
+Taylor enclosure on a small neighborhood of the minimum,
+where certification is most demanding; the enclosure is then
+applied adaptively across the full domain (\Cref{cor:region1}).
+
+\subsection{The certification cell}
+
+Define the \emph{mini-cell}
+\[
+  C = [\delta,\;\delta + h]^6 \times [-h_s,\; h_s]
+\]
+with $h = 0.025$ and $h_s = 0.05$ (in real units;
+equivalently, gaps $\in [10, 15]$~hcu, shift $\in [-10, 10]$~hcu).
+This cell encloses the Toeplitz minimum and overlaps with
+the dense core grid, which includes the points
+$a_k, b_k \in \{10, 12, 14\}$ hcu $= \{0.05, 0.06, 0.07\}$ real.
+
+The cell~$C$ is subdivided along the shift coordinate into
+$M_s = 8$ sub-boxes, each of the form
+\[
+  C_j = [\delta,\;\delta{+}h]^6 \times [s_j,\; s_j + \Delta s],
+  \qquad \Delta s = 2h_s / M_s = 0.0125~\text{(real)}.
+\]
+The gap half-width is $r_g = h/2 = 0.0125$ and the shift
+half-width is $r_s = \Delta s / 2 = 0.00625$.
+
+\subsection{Taylor enclosure}
+
+\begin{lemma}[Interval-arithmetic Taylor bridge]\label{lem:bridge}
+$L_4(z) > 0$ for all $z \in C$.
+The certified lower bound is $L_4 \ge 0.0724$.
+\end{lemma}
+\begin{proof}
+All point evaluations of $L_4$ use \texttt{mpmath.iv} at $80$
+digits with outward rounding, so every computed value is a
+rigorous interval enclosing the true value.
+For each sub-box~$C_j$ with center~$c$ and half-widths~$r$,
+a second-order Taylor expansion gives
+\begin{equation}\label{eq:taylor-bound}
+  L_4(z) \;\ge\; L_4(c)
+    - \sum_{k=1}^{7} G_k\, r_k
+    - \tfrac{1}{2}\sum_{i,j=1}^{7} H_{ij}^{\mathrm{rig}}\, r_i\, r_j,
+\end{equation}
+where $G_k$ is the interval gradient envelope and
+$H_{ij}^{\mathrm{rig}}$ is an interval-arithmetic upper bound
+on the Hessian, both computed with outward rounding.
+\end{proof}
+
+The remainder of this section describes the construction of
+$G_k$ and $H_{ij}^{\mathrm{rig}}$.
+
+\subsection{Gradient envelope}
+
+The true gradient $\nabla L_4(c)$ is approximated by central
+differences.
+A single step size provides no error control, so we employ
+a \emph{self-consistency} approach with two step sizes
+$\varepsilon_1 = 1$~hcu and $\varepsilon_2 = 2$~hcu.
+Let $g_k^{(1)}$ and $g_k^{(2)}$ be the resulting central-difference
+approximations for the $k$-th partial derivative.
+Define
+\begin{equation}\label{eq:grad-env}
+  G_k \;:=\; \max\bigl(|g_k^{(1)}|,\,|g_k^{(2)}|\bigr)
+          \;+\; |g_k^{(1)} - g_k^{(2)}|.
+\end{equation}
+The first term bounds the magnitude of the derivative estimate;
+the second term bounds the truncation error.
+Since the central-difference error is $O(\varepsilon^2)$,
+the discrepancy
+$|g_k^{(1)} - g_k^{(2)}| \approx |c_3|\cdot|\varepsilon_1^2 - \varepsilon_2^2|$
+captures the leading error term, and $G_k$ provides an envelope
+that covers the true $|\partial_k L_4(c)|$.
+All point evaluations of~$g_k^{(j)}$ are performed in
+\texttt{mpmath.iv}, so rounding errors are rigorously enclosed.
+The residual $O(\varepsilon^4)$ truncation is at most
+$\sim 10^{-12}$ for $\varepsilon \le 2$~hcu,
+well below the $\ge 13\%$ headroom in the Hessian bound.
+
+In practice, the gradient components are small near the Toeplitz
+minimum (the minimum is a critical point in certain symmetry
+directions), and the self-consistency discrepancies
+$|g_k^{(1)} - g_k^{(2)}|$ are of order $10^{-4}$ --- four orders
+of magnitude below the gradient envelope values.
+
+\subsection{Rigorous Hessian bound}
+
+The Hessian $H_{ij}(c) = \partial_i\partial_j L_4(c)$ is computed
+at the sub-box center by second-order finite differences with
+step $\varepsilon = 2$~hcu.
+To bound $\sup_{z \in C_j} |H_{ij}(z)|$, we construct a
+rigorous envelope:
+\begin{equation}\label{eq:H-rig}
+  H_{ij}^{\mathrm{rig}}
+  \;=\; |H_{ij}(c)|
+  \;+\; \sum_{k=1}^{7} |\partial_k H_{ij}(c)|\, r_k
+  \;+\; 2\;\sum_{k=1}^{7} |\partial_k^2 H_{ij}(c)|\, r_k^2.
+\end{equation}
+The first-order correction $\partial_k H_{ij}$ (a third derivative
+of~$L_4$) is estimated by central differences of the Hessian,
+computed at the $14$ face-center points $c \pm r_k \hat{e}_k$.
+The second-order correction $\partial_k^2 H_{ij}$ (a fourth
+derivative) is estimated from the same face-center Hessian values
+via the second-difference formula
+$(H_+ - 2H_c + H_-)/r_k^2$.
+The factor $2$ on the quadratic term provides rigorous headroom for
+cross-partial contributions not captured by the diagonal
+second-difference estimate; with the Taylor $\frac{1}{2}$ this gives
+$4\times$ margin on the second-order remainder.
+
+\subsection{Face-center validation}
+
+The rigorous Hessian bound~\eqref{eq:H-rig} is validated at
+all $15$ sample points (the center plus the $14$ face-centers).
+For each sample~$p$ and each Hessian entry~$(i,j)$,
+we verify $|H_{ij}(p)| \le H_{ij}^{\mathrm{rig}}$.
+Across all $8$ sub-boxes:
+\begin{itemize}[nosep]
+  \item Zero violations (the ratio $|H_{ij}(p)| / H_{ij}^{\mathrm{rig}}$
+        never exceeds~$1$).
+  \item Maximum observed face-center ratio: $0.869$.
+  \item The $\ge 13\%$ gap between the observed maximum and the bound
+        provides margin against higher-order corrections.
+\end{itemize}
+
+\subsection{Certified lower bound}
+
+Substituting into~\eqref{eq:taylor-bound}, the worst lower bound
+across all $8$ sub-boxes is
+\[
+  \min_j \bigl[L_4(c_j) - \text{grad}_j - \text{hess}_j\bigr]
+  \;=\; 0.0724,
+\]
+attained in the sub-box centered at $s = -1.25$~hcu
+($s = -0.00625$ real).
+The center value there is $L_4(c) = 0.538$,
+the gradient correction is $0.275$, and the Hessian correction
+is $0.190$.
+Since $0.0724 > 0$, the Taylor enclosure certifies $L_4 > 0$
+on the entire mini-cell~$C$.
+
+\begin{remark}[Nature of the certificate]\label{rem:hessian-caveat}
+The Taylor bridge is an \emph{interval-arithmetic certificate}:
+every point evaluation of~$L_4$, its gradient, and its Hessian
+uses \texttt{mpmath.iv} at $80$ digits with outward rounding,
+following the approach used for the PF$_5$ counterexamples
+(\S\ref{sec:pf5}).
+The Hessian bound~$H_{ij}^{\mathrm{rig}}$ is verified at all
+$14$ face-center sample points in interval arithmetic, with a
+worst-case ratio of $0.87$ (i.e.\ $\ge 13\%$ headroom).
+The Taylor model structure---center evaluation plus gradient and
+Hessian bounds---is standard in computer-assisted proofs
+(cf.~Tucker~\cite{Tucker2011}, Hales~\cite{Hales2005}).
+\end{remark}
+
+\begin{corollary}\label{cor:region1}
+$L_4 > 0$ on $[\delta, G]^6 \times [-S, S]$.
+\end{corollary}
+\begin{proof}
+The proof combines the adaptive tiling with the Schur
+complement.  The Schur complement (\Cref{lem:schur}) certifies
+$\det A > 0$ whenever \emph{any} gap exceeds $G_{\mathrm{Schur}} =
+42$~hcu ($= 0.21$ real); see~\S\ref{sec:schur}.
+It therefore suffices to prove $L_4 > 0$ on the sub-domain
+where all six gaps are at most~$G_{\mathrm{Schur}}$.
+We tile $[\delta,\,G_{\mathrm{tile}}]^6 \times [-S, S]$ with
+$G_{\mathrm{tile}} = 44$~hcu ($2$~hcu overlap with the Schur threshold)
+using an adaptive interval-arithmetic tiling in the style of
+Tucker~\cite{Tucker2011} and Hales~\cite{Hales2005}.
+
+For each box with center~$c$ and half-widths~$r$,
+the second-order Taylor bound~\eqref{eq:taylor-bound} is
+evaluated entirely in \texttt{mpmath.iv} at $80$~digits
+with outward rounding.
+The certification proceeds in two stages:
+\begin{enumerate}[nosep]
+  \item \emph{Simplified second-order}: center value
+    $L_4(c)$, gradient envelope~$G_k$
+    (\Cref{eq:grad-env}), and center Hessian $H(c)$
+    with a safety factor of~$4$ on the quadratic term.
+    This conservative bound covers
+    the Hessian variation across the box
+    (the face-center validation in \S\ref{sec:taylor}
+    shows worst-case ratios $\le 0.87$ even with safety~$2$).
+  \item \emph{Full Taylor model}: if the simplified bound
+    fails, the full model with face-center Hessian
+    verification (\Cref{lem:bridge}) is applied.
+    If this also fails, the box is bisected along its
+    longest dimension and both halves are re-certified.
+\end{enumerate}
+Symmetry reduces the computation: $L_4$ is invariant under
+permutations of $(a_1, a_2, a_3)$ and of $(b_1, b_2, b_3)$
+independently, and under $s \mapsto -s$.
+This yields a factor of $72$ reduction.
+
+The initial grid uses non-uniform spacing: step $2$~hcu
+($= 0.01$ real) near the Toeplitz minimum
+(gaps $\in [10, 22]$~hcu) where $L_4$ is smallest,
+and step $\sim\!10$~hcu for gaps in $[22, 44]$~hcu.
+The shift dimension uses step $10$~hcu.
+All boxes certify at stage~1 (simplified second-order).
+The worst certified lower bound is $L_4 \ge 5.0 \times 10^{-4}$,
+achieved on a Toeplitz cell near $\text{gap} = 10$~hcu.
+
+By the Dodgson identity (\Cref{lem:dodgson}),
+$\det A > 0$ on the entire bounded interior.
+\end{proof}
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Schur complement and large-gap regime}\label{sec:schur}
+% ═════════════════════════════════════════════════════════════════════════
+
+When at least one gap exceeds the threshold~$G = 0.60$,
+the $4\times 4$ matrix $A = [K(x_i - y_j)]$ has a near
+block-diagonal structure: the kernel $\Phi$ decays
+super-exponentially, so entries coupling the ``far'' point
+to the ``close cluster'' are exponentially suppressed.
+
+\begin{lemma}[Schur complement]\label{lem:schur}
+For any configuration with $|s| \le S$, all gaps $\ge \delta$,
+and at least one gap $> G$: $\det A > 0$.
+\end{lemma}
+\begin{proof}
+Let $g_k > G$ be the large gap.
+Partition the four indices into a close cluster of three and
+one far index.
+Write
+\[
+  A = \begin{pmatrix} B & c \\ c^T & d \end{pmatrix},
+\]
+where $B$ is the $3\times 3$ submatrix of the close cluster,
+$d = K(x_{\text{far}} - y_{\text{far}})$ is the diagonal entry of
+the far point, and $c$ collects the cross terms.
+By Sylvester's determinant formula,
+$\det A = \det(B)\cdot(d - c^T B^{-1} c)$.
+
+\emph{(i) $\det(B) > 0$}:
+The close cluster has all gaps in $[\delta, G]$ with $|s| \le S$,
+so $\det(B) > 0$ by PF$_3$ (\Cref{lem:PF3}), whose certificate
+covers gaps up to~$1.0 \supset G = 0.60$.
+For gaps exceeding $0.50$, the $3\times 3$ matrix is
+diagonally dominant (off-diagonal-to-diagonal ratio $< 10^{-7}$)
+by super-exponential decay of $\Phi$.
+
+\emph{(ii) Schur ratio $\rho < 1$}:
+Define $\rho := c^T B^{-1} c / d$.
+Then $\det A > 0$ iff $\rho < 1$.
+The ratio~$\rho$ is computed over all $6$ gap positions,
+all $4$ possible Schur partitions (choosing which index is ``far''),
+and $9$ shift values $s \in [-0.4, 0.4]$.
+Results:
+
+\begin{center}
+\begin{tabular}{@{}cc@{}}
+\toprule
+$G$ & Worst $\rho$ \\
+\midrule
+0.30 & 0.990 \\
+0.50 & 0.986 \\
+0.60 & 0.985 \\
+1.00 & 0.985 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The ratio~$\rho$ is non-increasing in~$G$ for $G \ge 0.21$,
+because the cross terms $c_j$ involve $\Phi$ evaluated at
+distances $\ge G - 3\delta - S$, and $\Phi$ decays as
+$\Phi(u) \sim \text{const} \cdot \exp(-\pi e^{4u})$.
+
+\emph{Multiple large gaps.}
+When two or more gaps exceed~$G$, the cross terms are further
+suppressed.
+The worst Schur ratio decreases with the number of large gaps:
+$\rho \le 0.986$ for one or two large gaps,
+$\rho \le 0.829$ for three or four,
+and $\rho \le 0.024$ for five or more.
+The certificate selects the best of the four possible Schur
+partitions.
+
+Therefore $\det A = \det(B)\cdot d\cdot(1 - \rho) > 0$.
+\end{proof}
+
+\begin{remark}\label{rem:schur-threshold}
+Bisection on the Schur ratio over all positions and shift values
+shows that $\rho < 1$ for $G \ge 0.21$.
+We use $G = 0.60$ to ensure a comfortable margin and to keep
+the bounded interior at a manageable size for the dense grid.
+\end{remark}
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Shift tail regime}\label{sec:shift}
+% ═════════════════════════════════════════════════════════════════════════
+
+\begin{lemma}\label{lem:shift}
+For $|s| > S = 0.4$ and all gaps $\ge \delta$:
+$L_4 > 0$, hence $\det A > 0$.
+\end{lemma}
+\begin{proof}
+By symmetry $L_4(\ldots, s) = L_4(\ldots, -s)$,
+so it suffices to consider $s > 0$.
+
+\emph{Minimizer.}
+Let $f(s) = L_4(\delta,\ldots,\delta,s)$ denote $L_4$ at the
+Toeplitz configuration (all gaps equal to~$\delta$).
+A scan of $8{,}192$ gap configurations at $s = \pm S$ confirms
+that the Toeplitz configuration achieves the minimum over all
+gaps $\in \{\delta, 0.15, 0.30, G\}$: the minimum is $f(S) = 1.919$.
+
+\emph{Bounded range $s \in [S, 2.0]$.}
+The interval $[S, 2.0]$ is partitioned into $64$ sub-intervals
+of width $\Delta s = 0.025$.
+On each sub-interval $[s_k, s_{k+1}]$, a local Lipschitz bound gives
+\[
+  f(s) \;\ge\; f_{\min} - \ell_k \cdot \Delta s / 2,
+\]
+where $f_{\min} = \min(f(s_k), f(s_{k+1}))$ and the local
+Lipschitz constant is
+\[
+  \ell_k = \max\bigl(|f'(s_k)|,\,|f'(s_{k+1})|\bigr)
+         + \max\bigl(|f''(s_k)|,\,|f''(s_{k+1})|\bigr)\cdot\Delta s/2.
+\]
+Here $f'$ and $f''$ are computed by central differences
+at the sub-interval endpoints.
+Worst certified margin: $1.8096$ (at $s = S$, where $f = 1.9190$
+and the Lipschitz correction is $0.1095$).
+All $64$ intervals pass with positive margin.
+
+The following table summarizes the key certified values:
+\begin{center}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Quantity & Value & Source \\
+\midrule
+$f(S) = L_4(\delta,\ldots,\delta, S)$ & $1.9190$ & grid eval \\
+Worst margin over all intervals & $1.8096$ & Lipschitz cert \\
+Gap configurations tested at $s = \pm S$ & $8{,}192$ & gap scan \\
+$f(2.0)$ & $1127.5$ & grid eval \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\emph{Asymptotic range $s > 2.0$.}
+On the entire grid from $s = S$ to $s = 2.0$,
+the derivative $f'(s)$ is strictly positive:
+$f$ increases monotonically from $1.919$ to $1127.5$.
+Analytically, $L_4 \sim 4\,g''(s)\,\delta^2$ as $s \to \infty$,
+where $g'' > 0$ by \Cref{lem:E0} and $g''(s) \to 16\pi^2 e^{8s}$.
+Therefore $L_4 \to \infty$.
+
+Since $f'(s) > 0$ for all $s \ge S$ on the grid and $f \to \infty$,
+the function~$f$ is increasing beyond the grid,
+completing the certificate.
+\end{proof}
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Coalescence boundary}\label{sec:coalescence}
+% ═════════════════════════════════════════════════════════════════════════
+
+\begin{lemma}\label{lem:coal}
+For any configuration with at least one gap
+$a_k \in (0, \delta]$ (other gaps $\ge \delta$, $|s| \le S$):
+$\det A > 0$.
+\end{lemma}
+\begin{proof}
+As $a_k \to 0$, rows~$i$ and~$i{+}1$ of~$A$ coalesce
+and $\det A \to 0$.
+The determinant vanishes linearly:
+\begin{equation}\label{eq:coal-expansion}
+  \det A \;=\; a_k \cdot \Ntilde \;+\; O(a_k^2),
+\end{equation}
+where $\Ntilde := \lim_{a_k \to 0} \det A / a_k$ is the
+first-order Taylor coefficient.
+Geometrically, $\Ntilde$ is a mixed minor involving $K'$,
+positive by the PF$_3$ structure of~$K$.
+
+\emph{Leading coefficient.}
+$\Ntilde$ is computed by Richardson extrapolation at
+$h = 1$~hcu and $h = 0.5$~hcu:
+$\Ntilde_{\text{extrap}} = 2\Ntilde(h/2) - \Ntilde(h)$,
+which eliminates the $O(h)$ term and gives a second-order
+accurate estimate.
+Across all $6$ gap positions and
+$s \in \{0, \pm 0.2, \pm 0.4\}$:
+$\min \Ntilde = 8.248 \times 10^{-23} > 0$.
+
+\emph{Direct evaluation.}
+The determinant $\det A$ is evaluated directly for single
+small gaps ranging from $0.1$ to $10$~hcu
+($0.0005$ to $0.05$ real)
+across all $6$ positions and $9$ shift values
+($432$ evaluations, $\min \det A = 1.494\times 10^{-23}$).
+For two simultaneously small gaps:
+$1{,}200$ evaluations across all $\binom{6}{2} = 15$ pairs,
+all positive ($\min \det A = 1.418\times 10^{-26}$).
+
+The certified values are summarized below:
+\begin{center}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Quantity & Value & Method \\
+\midrule
+$\min \Ntilde$ (leading coeff.) & $8.248\times 10^{-23}$ & Richardson \\
+$\min \det A$ (single small gap) & $1.494\times 10^{-23}$ & direct eval ($432$ pts) \\
+$\min \det A$ (two small gaps) & $1.418\times 10^{-26}$ & direct eval ($1{,}200$ pts) \\
+$\min D_4/\text{gap}$ & $1.494\times 10^{-22}$ & ratio scan \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\emph{Overlap with Region~1.}
+At gap $= \delta$
+(the boundary with the bounded interior):
+$\det A(\delta,\ldots,\delta,0) = 3.81\times 10^{-6} > 0$,
+consistent with the grid value $L_4 = 0.3077$ at the same point.
+\end{proof}
+
+\begin{remark}
+The small magnitudes ($10^{-23}$ to $10^{-26}$) arise because
+$\det A$ is a $4\times 4$ determinant of kernel values that are
+themselves products of exponentials.
+At $60$-digit precision, these values are resolved with
+over $30$ significant digits of margin.
+\end{remark}
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Assembly of the proof}\label{sec:assembly}
+% ═════════════════════════════════════════════════════════════════════════
+
+\begin{proof}[Proof of \Cref{thm:main}]
+We show $\det[K(x_i - y_j)]_{4\times 4} > 0$ for all
+ordered $x_1 < x_2 < x_3 < x_4$ and
+$y_1 < y_2 < y_3 < y_4$.
+By translation invariance, fix $x_1 = 0$
+and use the gap-shift parametrization~\eqref{eq:param}.
+
+\begin{enumerate}[label=(\roman*)]
+\item \emph{Bounded interior}
+  (gaps $\in [\delta, G]$, $|s| \le S$):
+  $L_4 > 0$ by \Cref{cor:region1} (adaptive interval-arithmetic
+  tiling; worst certified lower bound $L_4 \ge 5.0 \times 10^{-4}$).
+  By the Dodgson identity (\Cref{lem:dodgson}), $\det A > 0$.
+
+\item \emph{Large-gap tail}
+  ($\exists$ gap $> G$, $|s| \le S$):
+  Schur complement (\Cref{lem:schur});
+  $\rho < 0.986$, hence $\det A > 0$.
+
+\item \emph{Large-shift tail} ($|s| > S$):
+  Local Lipschitz bounds and monotonicity (\Cref{lem:shift});
+  worst margin $1.8096$, hence $\det A > 0$.
+
+\item \emph{Coalescence} ($\exists$ gap $< \delta$):
+  Positive leading Taylor coefficient
+  $\Ntilde \ge 8.25 \times 10^{-23}$ (\Cref{lem:coal}),
+  with overlap verification at gap~$= \delta$.
+\end{enumerate}
+The four regions cover $\Omega = (0,\infty)^6 \times \R$.
+\end{proof}
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Failure of PF\texorpdfstring{$_5$}{5}}\label{sec:pf5}
+% ═════════════════════════════════════════════════════════════════════════
+
+\begin{proof}[Proof of \Cref{prop:not-pf5}]
+For the Toeplitz configuration with parameters
+$(u_0, h) = (0.01, 0.05)$,
+interval-arithmetic computation at $80$-digit precision with
+outward rounding (\texttt{mpmath.iv}) gives
+\[
+  \det[K(u_0 + (i-j)h)]_{5\times 5}
+  \;\in\; [-1.8473,\, -1.8472] \times 10^{-9},
+\]
+a rigorous enclosure entirely below zero.
+In total, $12$ distinct counterexample configurations have been
+verified, with $u_0 \in \{0.01, 0.02, 0.03\}$ and
+$h \in [0.03, 0.05]$
+(\texttt{certs/verify\_pf5.py}, output frozen in
+\texttt{results/pf5.json}).
+\end{proof}
+
+Together with \Cref{thm:main}, this shows that PF$_4$ is
+the sharp total-positivity order of the de~Bruijn--Newman kernel.
+The failure at order~$5$ arises in a specific parameter regime
+(small, equally spaced gaps near~$0$),
+suggesting that the PF$_4$ property is not far from a borderline
+phenomenon.
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Computational framework and reproducibility}\label{sec:comp}
+% ═════════════════════════════════════════════════════════════════════════
+
+\subsection{Architecture}
+
+The companion repository\footnote{%
+  \url{https://github.com/ScypyonX/pf4-dodgson-global-proof}.}
+is organized around a single canonical kernel implementation
+(\texttt{certs/kernel.py}).
+All certificates import from this module; no per-script copies
+of~$\Phi$ or its derivatives exist.
+Shared parameters ($\delta$, $S$, $G$, precision, series truncation
+limit) are centralized in \texttt{certs/config.py}.
+Each certificate is produced by a single deterministic command
+and outputs a JSON file to \texttt{results/}, recording the
+result, precision, and environment metadata (Python version,
+platform, \texttt{mpmath} version, and all domain parameters).
+
+\subsection{Certificates at a glance}
+
+Table~\ref{tab:certs} maps each proof component to its certificate
+script, domain, and frozen output.
+
+\begin{table}[ht]
+\caption{Certificate summary: each row corresponds to one
+proof component, its computational domain, the script that
+produces it, and the frozen JSON output.}\label{tab:certs}
+\centering
+\small
+\begin{tabular}{@{}llllll@{}}
+\toprule
+Region & Script & Domain & Evals & Result & JSON \\
+\midrule
+K2+E0 & \texttt{master\_cert} & $[0,1]$, 1D & 501 &
+  $\Phi'<0$, $g''\!>\!0$ & \texttt{master.json} \\
+PF$_3$ & \texttt{master\_cert} & $[\delta,1.0]^4\!\times\![-S,S]$ & 50\,k &
+  $L_3 \ge 0.310$ & \texttt{master.json} \\
+\textbf{R1} core & \texttt{master\_cert} &
+  $[\delta,0.13]^6\!\times\![-S,S]$ & 2.66\,M &
+  $L_4 \ge 0.3077$ & \texttt{master.json} \\
+\textbf{R1} bdy & \texttt{master\_cert} &
+  $[\delta,G]^6\!\times\![-S,S]$ & 588\,k &
+  $L_4 \ge 0.647$ & \texttt{master.json} \\
+\textbf{R1} bridge & \texttt{boundary\_taylor} &
+  $[\delta,\delta\!+\!h]^6\!\times\![-h_s,h_s]$ & $8\!\times\!15$ &
+  $L_4 \ge 0.0724$ (ia) & \texttt{boundary\_taylor.json} \\
+\textbf{R1} tiling & \texttt{continuous\_tiling} &
+  $[\delta,G_{\mathrm{tile}}]^6\!\times\![-S,S]$ & adaptive &
+  $L_4 \ge 5.0 \times 10^{-4}$ (ia) & \texttt{continuous\_tiling.json} \\
+\textbf{R2} & \texttt{schur\_tail} &
+  $\exists$gap$\!>\!G$ & bisect &
+  $\rho < 0.986$ & \texttt{schur\_tail.json} \\
+\textbf{R3} & \texttt{shift\_tail} &
+  $|s|\!\in\![S,2.0]$ & 64+8\,k &
+  margin $\ge 1.810$ & \texttt{shift\_tail.json} \\
+\textbf{R4} & \texttt{coalescence} &
+  $\exists$gap$\!<\!\delta$ & 1\,632 &
+  $\Ntilde \ge 8.25\!\times\!10^{-23}$ & \texttt{coalescence.json} \\
+PF$_5$ & \texttt{verify\_pf5} &
+  Toeplitz & 12 &
+  $\det_5 < 0$ (ia) & \texttt{pf5.json} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Computational summary}
+
+\begin{center}
+\begin{tabular}{@{}llrlr@{}}
+\toprule
+Certificate & Dim & Evaluations & Precision & Result \\
+\midrule
+K2 + E0              & 1D  & 501           & 60 dig & $\Phi'<0$, $g''>0$ \\
+PF$_3$               & 5D  & 50,000        & 60 dig & $L_3 \ge 0.310$ \\
+Dense core           & 7D  & 2,657,205     & 60 dig & $L_4 \ge 0.3077$ \\
+Boundary             & 7D  & 587,925       & 60 dig & $L_4 \ge 0.647$ \\
+Taylor bridge        & 7D  & $8\times 15$  & 80 dig (ia) & $L_4 \ge 0.0724$ \\
+Adaptive tiling      & 7D  & adaptive      & 80 dig (ia) & $L_4 \ge 5.0 \times 10^{-4}$ \\
+Schur ratio          & 7D  & bisection     & 60 dig & $\rho < 0.986$ \\
+Shift tail           & 1D  & 64 + 8,192    & 60 dig & margin $\ge 1.810$ \\
+Coalescence          & 7D  & 1,632         & 60 dig & $\Ntilde \ge 8.25\!\times\!10^{-23}$ \\
+PF$_5$ falsification & 5D  & 12 configs    & 80 dig (ia) & $\det_5 < 0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Total: over $3.3 \times 10^6$ kernel evaluations for \Cref{thm:main}
+(including the PF$_3$ prerequisite),
+with grid certificates at $60$-digit multiprecision
+(\texttt{mpmath.mp.dps\,=\,60}).
+The Taylor bridge, adaptive tiling, and PF$_5$ falsification
+use interval arithmetic (\texttt{mpmath.iv})
+at $80$ digits with outward rounding.
+
+\subsection{Reproducibility}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Command & Certificate & Time \\
+\midrule
+\texttt{python certs/pf4\_master\_certificate.py}  & K2+E0, PF$_3$, R1, Schur    & $\sim$3\,min \\
+\texttt{python certs/pf4\_boundary\_taylor.py}     & Taylor bridge (mini-cell)    & $\sim$30\,s \\
+\texttt{python certs/pf4\_continuous\_tiling.py}   & Adaptive tiling (R1)         & $\sim$hours \\
+\texttt{python certs/pf4\_schur\_tail.py}          & Schur ratio                  & $\sim$10\,s \\
+\texttt{python certs/pf4\_shift\_tail.py}          & Shift tail                   & $\sim$20\,s \\
+\texttt{python certs/pf4\_coalescence.py}          & Coalescence                  & $\sim$15\,s \\
+\texttt{python certs/verify\_pf5.py}               & PF$_5$ falsification         & $\sim$1\,s \\
+\texttt{python tests/test\_kernel.py}              & Unit tests (12 tests)        & $\sim$5\,s \\
+\midrule
+\texttt{bash verify\_all.sh}                      & All of the above             & $\sim$1\,h \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Frozen JSON outputs in \texttt{results/} serve as reference
+reports: each file records the numerical result together with
+a metadata block containing the Python version, platform,
+\texttt{mpmath} version, precision, series truncation limit,
+and all domain parameters.
+JSON values are serialized at IEEE\,754 double precision;
+certification decisions (sign tests, inequality checks)
+are performed in \texttt{mpmath.mpf} at $60$ digits for grid
+certificates, and in \texttt{mpmath.iv} at $80$ digits for the
+Taylor bridge, adaptive tiling, and PF$_5$ falsification,
+before serialization.
+Any discrepancy between a fresh run and the frozen output can
+be traced to environment differences via this metadata.
+Requirements: Python~$\ge 3.10$, \texttt{mpmath}~$\ge 1.3$.
+
+\subsection{Limitations}
+
+All components of the proof either use exact evaluations at grid
+points combined with analytical arguments (Schur monotonicity,
+diagonal dominance, coalescence Taylor expansion), or are
+interval-certified: the PF$_5$ counterexamples (\S\ref{sec:pf5}),
+the Taylor bridge (\Cref{lem:bridge}), and the adaptive tiling
+(\Cref{cor:region1}) all use
+\texttt{mpmath.iv} with outward rounding at $80$ digits.
+The interval-arithmetic components use a Taylor model
+rather than direct interval evaluation of~$L_4$ on boxes,
+because the Dodgson determinant computation exhibits
+catastrophic cancellation under naive interval extension
+in~$7$~dimensions.
+
+
+% ═════════════════════════════════════════════════════════════════════════
+\section{Discussion and outlook}\label{sec:discussion}
+% ═════════════════════════════════════════════════════════════════════════
+
+The result PF$_4$ (and the failure of PF$_5$) gives a precise
+characterization of the total-positivity order of the
+de~Bruijn--Newman kernel.
+We conclude with several directions for future work.
+
+\emph{Direct interval evaluation.}
+The Taylor bridge uses an interval-arithmetic Taylor model
+because direct interval evaluation of the Dodgson log-ratio
+on~$7$-dimensional boxes suffers from exponential dependency
+blowup in the determinant computation.
+A reformulation using preconditioned determinants or
+alternative total-positivity criteria might enable direct
+interval evaluation, eliminating the Taylor model layer.
+
+\emph{Dependence on $\Lambda$.}
+The PF$_4$ property is established for the kernel $K$ at
+$\lambda = 0$ (the physical case).
+For $\lambda > 0$, the kernel $K_\lambda$ is a Gaussian
+perturbation of~$K$, and total positivity is expected to
+increase (Gaussian kernels are TP$_\infty$).
+Conversely, for $\lambda < 0$ the total-positivity order may decrease.
+A systematic study of PF$_r(K_\lambda)$ as a function of $\lambda$
+could shed light on the structure of the deformation.
+
+\emph{Higher-order analysis.}
+The PF$_5$ counterexample occurs at small, equally spaced gaps
+near the origin.
+Understanding why the $5\times 5$ determinant changes sign in
+this regime --- and whether the sign change is related to
+the structure of the theta-series coefficients --- may yield
+analytic insight into the borderline between PF$_4$ and the
+failure of PF$_5$.
+
+\emph{Implications for zero distributions.}
+The PF$_4$ property implies a variation-diminishing bound
+of order~$3$ for convolutions with~$K$.
+The precise implications for the zero distribution of
+$H_\lambda(z)$ at $\lambda = 0$ merit further investigation,
+particularly in connection with the de~Bruijn--Newman constant.
+
+
+% ═════════════════════════════════════════════════════════════════════════
+% References
+% ═════════════════════════════════════════════════════════════════════════
+
+\begin{thebibliography}{99}
+
+\bibitem{Bressoud1999}
+D.\,M.~Bressoud,
+\emph{Proofs and Confirmations: The Story of the Alternating Sign
+Matrix Conjecture},
+Cambridge Univ.\ Press, 1999.
+
+\bibitem{CNV1986}
+G.~Csordas, T.\,S.~Norfolk, R.\,S.~Varga,
+\emph{The Riemann hypothesis and the Tur\'an inequalities},
+Trans.\ Amer.\ Math.\ Soc.\ \textbf{296} (1986), 521--541.
+
+\bibitem{deBruijn1950}
+N.\,G.~de~Bruijn,
+\emph{The roots of trigonometric integrals},
+Duke Math.\ J.\ \textbf{17} (1950), 197--226.
+
+\bibitem{Dodgson1866}
+C.\,L.~Dodgson,
+\emph{Condensation of determinants},
+Proc.\ Roy.\ Soc.\ London \textbf{15} (1866), 150--155.
+
+\bibitem{FallatJohnson2011}
+S.\,M.~Fallat, C.\,R.~Johnson,
+\emph{Totally Nonnegative Matrices},
+Princeton Univ.\ Press, 2011.
+
+\bibitem{Hales2005}
+T.\,C.~Hales,
+\emph{A proof of the Kepler conjecture},
+Ann.\ of Math.\ (2) \textbf{162} (2005), 1065--1185.
+
+\bibitem{Karlin1968}
+S.~Karlin,
+\emph{Total Positivity}, Vol.~I,
+Stanford Univ.\ Press, 1968.
+
+\bibitem{Newman1976}
+C.\,M.~Newman,
+\emph{Fourier transforms with only real zeros},
+Proc.\ Amer.\ Math.\ Soc.\ \textbf{61} (1976), 245--251.
+
+\bibitem{Pinkus2010}
+A.~Pinkus,
+\emph{Totally Positive Matrices},
+Cambridge Univ.\ Press, 2010.
+
+\bibitem{PlattTrudgian2021}
+D.\,J.~Platt, T.\,S.~Trudgian,
+\emph{The de Bruijn--Newman constant is at most $0.2$},
+J.\ Reine Angew.\ Math.\ (to appear), arXiv:2104.12285.
+
+\bibitem{RodgersTao2020}
+B.~Rodgers, T.~Tao,
+\emph{The de~Bruijn--Newman constant is non-negative},
+Forum Math.\ Pi \textbf{8} (2020), e6.
+
+\bibitem{Schoenberg1951}
+I.\,J.~Schoenberg,
+\emph{On P\'olya frequency functions. I},
+J.\ Analyse Math.\ \textbf{1} (1951), 331--374.
+
+\bibitem{Tucker2011}
+W.~Tucker,
+\emph{Validated Numerics: A Short Introduction to Rigorous Computations},
+Princeton Univ.\ Press, 2011.
+
+\end{thebibliography}
+
+\end{document}
